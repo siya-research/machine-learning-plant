@@ -1,0 +1,114 @@
+# Import all neccesary libraries
+import numpy as np
+import pandas as pd
+import cv2
+import seaborn as sns
+import matplotlib.pyplot as plt
+from keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+from numpy import expand_dims
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import zipfile
+import os
+
+import glob
+from PIL import Image
+
+
+folder_disease_path = '/content/drive/My Drive/Tomato_Bacterial_spot/'
+folder_healthy_path = '/content/drive/My Drive/Tomato_healthy/'
+
+plant_disease_data = glob.glob(folder_disease_path + '*.jpg') + glob.glob(folder_disease_path + '*.JPG')
+plant_healthy_data = glob.glob(folder_healthy_path + '*.jpg') + glob.glob(folder_healthy_path + '*.JPG')
+imageslist = []
+# imageslist = np.array([])
+labelslist = []
+# labelslist = np.array([])
+for image_path_disease in plant_disease_data:
+    img = Image.open(image_path_disease).resize((128,128))
+    imageslist.append(np.array(img).flatten())
+    labelslist.append(1)
+   #  np.append(labelslist,1)
+for image_path_healthy in plant_healthy_data:
+    img2  = Image.open(image_path_healthy).resize((128,128))
+    imageslist.append(np.array(img2).flatten())
+    labelslist.append(0)
+    # np.append(labelslist,0)
+print(labelslist)
+print(imageslist)
+X = np.array(imageslist)
+print(X)
+y = np.array(labelslist)
+print(y)
+
+# Report number of samples in dataset
+import os
+
+folder_path_bacteria = '/content/drive/My Drive/Tomato_Bacterial_spot/'
+folder_path_healthy = '/content/drive/My Drive/Tomato_healthy'
+all_files_bacteria = os.listdir(folder_path_bacteria)
+all_files_healthy = os.listdir(folder_path_healthy)
+print("Total samples in the bacteria dataset:", len(all_files_bacteria))
+print("Total samples in healthy dataset: ", len(all_files_healthy))
+
+
+# Report the dimensions of this image
+from PIL import Image
+
+# Replace with the path to your specific image
+image_path_disease = '/content/drive/My Drive/Tomato_Bacterial_spot/00a7c269-3476-4d25-b744-44d6353cd921___GCREC_Bact.Sp 5807.JPG'
+image_path_healthy = '/content/drive/My Drive/Tomato_healthy/ffd8aa68-138f-4114-96c7-21eef72e1e13___RS_HL 9881.JPG'
+
+img = Image.open(image_path_disease)
+img2 = Image.open(image_path_healthy)
+
+width, height = img.size
+print("Width:", width, "Height:", height)
+
+#Create a final X matrix with the samples along the rows and all the features along the columns. Report the dimensions of your dataset.
+# create x matrix with images
+X_matrix = np.array(imageslist)
+# Create y matrix with labels
+y_matrix = np.array(labelslist)
+# Report the dimensions
+print(X_matrix.shape)
+print(y_matrix.shape)
+# Put data into training and testing by using the train_test_split() function
+#if X_matrix.shape[0] > 1:
+print(X_matrix)
+print(y_matrix)
+X_train, X_test, y_train, y_test = train_test_split(X_matrix,y_matrix, test_size=0.2, random_state=42)
+print(labelslist)
+
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+from sklearn import metrics
+import matplotlib.pyplot as plt
+
+SVCModel = SVC(C=10)
+SVCModel.fit(X_train, y_train)
+
+svc_y_pred = SVCModel.predict(X_test)
+
+print(f"The accuracy score is {accuracy_score(svc_y_pred, y_test)}.")
+print(f"The f1 score is {f1_score(svc_y_pred, y_test)}.")
+print(f"The precision score is {precision_score(svc_y_pred, y_test)}.")
+print(f"The recall score is {recall_score(svc_y_pred, y_test)}.")
+print(confusion_matrix(svc_y_pred, y_test))
+
+fpr, tpr, thresholds = metrics.roc_curve(y_test, svc_y_pred)
+roc_auc = metrics.auc(fpr, tpr)
+roc_display = metrics.RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc = roc_auc)
+roc_display.plot()
+plt.figure()
+plt.show()
+print(roc_auc)
